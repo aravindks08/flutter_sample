@@ -101,8 +101,7 @@ void showSimpleCustomDialog(BuildContext context) {
                   RaisedButton(
                     color: Colors.blue,
                     onPressed: () {
-                      exit(0);
-                      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                      exit(0);  
                     },
                     child: Text(
                       'Okay',
