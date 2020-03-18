@@ -1,72 +1,40 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
-
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: MyHomePage(title: 'Aravind'),
+      theme: ThemeData(),
+      navigatorObservers: [MyRouteObserver()],
+      home: Screen1(),
+      routes: {
+        'screen2': (context) => Screen2(),
+        'screen3': (context) => Screen3(),
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
-  int _counter = 0;
-  @override
-  void initState() {
-    print("hello1");
-    print(this._counter);
-    WidgetsBinding.instance.addObserver(this);
-    super.initState();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('state = $state');
-    showSimpleCustomDialog(context);
-    print(this._counter);
-  }
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-  
+class Screen1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
+          children: [
+            Text('Screen 1'),
+            SizedBox(height: 30.0),
             RaisedButton(
-              onPressed: () {
-                showSimpleCustomDialog(context);
-              },
-              child: Text("Show Simple Custom Dialog"),
+              child: Text('Screen 2'),
+              onPressed: () => Navigator.of(context).pushNamed('screen2'),
             ),
+            RaisedButton(
+              child: Text('Screen 3'),
+              onPressed: () => Navigator.of(context).pushNamed('screen3'),
+            )
           ],
         ),
       ),
@@ -74,75 +42,55 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
   }
 }
 
-void showSimpleCustomDialog(BuildContext context) {
-    Dialog simpleDialog = Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Container(
-        height: 300.0,
-        width: 300.0,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(15.0),
-              child: Text(
-                'Maintainance mode : 503',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10, top: 50),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  RaisedButton(
-                    color: Colors.blue,
-                    onPressed: () {
-                      exit(0);  
-                    },
-                    child: Text(
-                      'Okay',
-                      style: TextStyle(fontSize: 18.0, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    showDialog(
-        context: context, builder: (BuildContext context) => simpleDialog);
+class Screen2 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(appBar: AppBar(), body: Center(child: Text('Screen 2')));
+  }
 }
 
-// class LifecycleEventHandler extends WidgetsBindingObserver {
-//   final AsyncCallback resumeCallBack;
-//   final AsyncCallback suspendingCallBack;
+class Screen3 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(appBar: AppBar(), body: Center(child: Text('Screen 3')));
+  }
+}
 
-//   LifecycleEventHandler({
-//     this.resumeCallBack,
-//     this.suspendingCallBack,
-//   });
+class MyRouteObserver extends RouteObserver<PageRoute<dynamic>> {
+  final Widget child;
 
-//   @override
-//   Future<Null> didChangeAppLifecycleState(AppLifecycleState state) async {
-//     switch (state) {
-//       case AppLifecycleState.resumed:
-//         if (resumeCallBack != null) {
-//           await resumeCallBack();
-//         }
-//         break;
-//       case AppLifecycleState.inactive:
-//       case AppLifecycleState.paused:
-//       case AppLifecycleState.detached:
-//         if (suspendingCallBack != null) {
-//           await suspendingCallBack();
-//         }
-//         break;
-//     }
-//   }
-// }
+  MyRouteObserver({this.child});
+
+  void _sendScreenView(PageRoute<dynamic> route) {
+    var screenName = route.settings.name;
+    print('screenName $screenName');
+    Widget build(BuildContext context) {
+      return Scaffold(appBar: AppBar(), body: Center(child: Text('Screen 5')));
+    }
+    
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic> previousRoute) {
+    super.didPush(route, previousRoute);
+    if (route is PageRoute) {
+      _sendScreenView(route);
+    }
+  }
+
+  @override
+  void didReplace({Route<dynamic> newRoute, Route<dynamic> oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    if (newRoute is PageRoute) {
+      _sendScreenView(newRoute);
+    }
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
+    super.didPop(route, previousRoute);
+    if (previousRoute is PageRoute && route is PageRoute) {
+      _sendScreenView(previousRoute);
+    }
+  }
+}
